@@ -1,6 +1,6 @@
 # Environmental Data Exploration - Fall 2025
 ENV 872 - Environmental Data Exploration - Fall 2025  
-Instructors Lima & Fay  
+Yimei Du  
 Nicholas School of the Environment  
 Duke University  
 
