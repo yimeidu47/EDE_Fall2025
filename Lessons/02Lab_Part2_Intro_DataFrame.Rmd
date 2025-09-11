@@ -47,7 +47,7 @@ Is the new object you create a data frame?
 
 ```{r}
 #Option 1
-class(car_speed)
+class(car_speed) #show the data is numeric or logical or ...
 
 #Option 2
 is.data.frame(car_speed)
