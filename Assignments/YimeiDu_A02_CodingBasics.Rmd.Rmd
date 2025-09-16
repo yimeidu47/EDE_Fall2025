@@ -1,0 +1,117 @@
+---
+title: "Assignment 2: Coding Basics"
+author: "Yimei Du"
+output: pdf_document
+geometry: margin=2.54cm
+editor_options: 
+  chunk_output_type: console
+---
+
+## OVERVIEW
+
+This exercise accompanies the lessons/labs in Environmental Data Analytics on coding basics.
+
+## Directions
+
+1.  Rename this file `<FirstLast>_A02_CodingBasics.Rmd` (replacing `<FirstLast>` with your first and last name).
+2.  Change "Student Name" on line 3 (above) with your name.
+3.  Work through the steps, **creating code and output** that fulfill each instruction.
+4.  Be sure to **answer the questions** in this assignment document.
+5.  When you have completed the assignment, **Knit** the text and code into a single PDF file.
+6.  After Knitting, submit the completed exercise (PDF file) to Canvas.
+
+## Basics, Part 1
+
+1.  Generate a sequence of numbers from one to 55, increasing by fives. Assign this sequence a name.
+
+2.  Compute the mean and median of this sequence.
+
+3.  Ask R to determine whether the mean is greater than the median.
+
+4.  Insert comments in your code to describe what you are doing.
+
+```{r basics 1}
+#1. 
+seqx <- seq(1,55,5) #sequence of number from 1 to 55 increasing by 5 (from,to,by); 
+# call this sequence seqx 
+seqx #display seqx
+
+#2. 
+mean(seqx) #use function mean() to calculate the mean of seqx 
+median(seqx) #use function median() to calculate the median of seqx 
+
+#3. 
+mean(seqx) == median(seqx) #ask R if mean(seqx) = median (seqx) by generating true/false answer 
+```
+
+## Basics, Part 2
+
+5.  Create three vectors, each with four components, consisting of (a) student names, (b) test scores, and (c) whether they are on scholarship or not (TRUE or FALSE).
+
+6.  Label each vector with a comment on what type of vector it is.
+
+7.  Combine each of the vectors into a data frame. Assign the data frame an informative name.
+
+8.  Label the columns of your data frame with informative titles.
+
+```{r basics 2}
+student_name <- c("Isabella", "Bella", "CC", "Molly") #nominal data
+test_score <- c(95, 98, 93, 90) #numerical data/ratio data
+scholarship <- c(TRUE, FALSE, FALSE, FALSE) #logical data 
+
+students <- data.frame(student_name, test_score, scholarship) 
+names(students) <- c("Name","Score","On Scholarship")
+students 
+```
+
+9.  QUESTION: How is this data frame different from a matrix?
+
+> Answer:Data frame can hold multiple types of data by matrix can only hold one type of data. In this case, we have different vectors with multiple types of data, a data frame will be more suitable. 
+
+10. Create a function with one input. In this function, use `if`...`else` to evaluate the value of the input: if it is greater than 50, print the word "Pass"; otherwise print the word "Fail". 
+
+11. Create a second function that does the exact same thing as the previous one but uses `ifelse()` instead if `if`...`else `. 
+
+12. Run both functions using the value 52.5 as the input
+
+13. Run both functions using the **vector** of student test scores you created as the input. (Only one will work properly...)
+
+```{r basics 3}
+#10. Create a function using if...else
+function1 <- function(x) {
+  if(x > 50) {
+    print("Pass")
+  } 
+  else {
+    print("Fail")
+  }
+}
+
+#11. Create a function using ifelse()
+function2 <- function(x) {
+  ifelse(x > 50, "Pass", "Fail")
+}
+
+#12a. Run the first function with the value 52.5
+function1(52.5)
+
+#12b. Run the second function with the value 52.5
+function2(52.5)
+
+#13a. Run the first function with the vector of test scores
+# results_students <- function1(students$score)
+result_Isabella <- function1(95)
+result_Bella <- function1(98)
+result_CC <- function1(93)
+result_Molly <- function1(90)
+#13b. Run the second function with the vector of test scores
+results_students <- function2(students$Score)
+results_students
+```
+
+14. QUESTION: Which option of `if`...`else` vs. `ifelse` worked? Why? (Hint: search the web for "R vectorization")
+
+> Answer: only 'ifelse' worked in terms of vectorization. 'if'...'else' can only process one numeric data at a time so it doesn't work with vector like students$score. 
+
+
+**NOTE** Before knitting, you'll need to comment out the call to the function in Q13 that does not work. (A document can't knit if the code it contains causes an error!)
