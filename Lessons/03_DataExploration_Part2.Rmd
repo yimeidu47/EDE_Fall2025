@@ -25,11 +25,18 @@ Why is data exploration our first step in analyzing a dataset? What information 
 ```{r, Setup-Import-Explore, message = FALSE}
 ## -Set up-
 # 1. Load packages (tidyverse, here)
+library(tidyverse)
+library(here)
 
 # 2. Check the working directory
 
-# 3. Import datasets
+getwd()
+here()
 
+# 3. Import datasets
+USGS.flow.data <- read.csv(
+  file = here("")
+)
 ## -Initial Exploration-
 
 #View(USGS.flow.data)
