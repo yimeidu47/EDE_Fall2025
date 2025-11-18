@@ -1,6 +1,6 @@
 ---
 title: "Assignment 10: Data Scraping"
-author: "Student Name"
+author: "Yimei Du"
 output: pdf_document
 editor_options: 
   chunk_output_type: console
@@ -27,7 +27,26 @@ This exercise accompanies the lessons in Environmental Data Analytics on data sc
 
 ```{r 1. Project Setup, message = FALSE}
 #1 
+#Install familiar packages
+library(tidyverse);library(lubridate);library(viridis);library(here)
+here()
 
+#install.packages("rvest")
+library(rvest)
+
+#install.packages("dataRetrieval")
+library(dataRetrieval)
+
+#install.packages("tidycensus")
+library(tidycensus)
+
+# Set theme
+mytheme <- theme_gray() +
+  theme(axis.text = element_text(color = "black"), 
+        legend.position = "top")
+theme_set(mytheme)
+
+here()
 
 ```
 
@@ -36,11 +55,12 @@ This exercise accompanies the lessons in Environmental Data Analytics on data sc
  * Scroll down and select the LWSP link next to Durham Municipality. 
  * Note the web address: <https://www.ncwater.org/WUDC/app/LWSP/report.php?pwsid=03-32-010&year=2024>
  
-Indicate this website as the as the URL to be scraped. (In other words, read the contents into an `rvest` webpage object.)
+Indicate this website as the URL to be scraped. (In other words, read the contents into an `rvest` webpage object.)
 
 ```{r set.the.scraping.website}
 #2 
-
+URL <- read_html('https://www.ncwater.org/WUDC/app/LWSP/report.php?pwsid=03-32-010&year=2024')
+class(URL)
 ```
 
 3. The data we want to collect are listed below:
@@ -59,6 +79,26 @@ In the code chunk below scrape these values, assigning them to four separate var
 
 ```{r scrape.the.data}
 #3 
+name <- URL %>% 
+  html_nodes("div+ table tr:nth-child(1) td:nth-child(2)") %>% 
+  html_text()
+name
+
+id <- URL %>% 
+  html_nodes("td tr:nth-child(1) td:nth-child(5)") %>% 
+  html_text()
+id
+
+ownership <- URL %>% 
+  html_nodes("div+ table tr:nth-child(2) td:nth-child(4)") %>% 
+  html_text()
+ownership
+
+MGD <- URL %>% 
+  html_nodes("th~ td+ td, th~ td+ td") %>% 
+  html_text()
+MGD
+
 
 
 ```
@@ -74,10 +114,25 @@ In the code chunk below scrape these values, assigning them to four separate var
 
 ```{r create.a.dataframe.from.scraped.data}
 #4 
+df_durham <- data.frame("Month" =
+                          c("Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sept","Oct","Nov","Dec"), 
+                             "Year" = rep(2024,12),
+                             "Maximum_Day_Use" = as.numeric(MGD))
 
+df_durham <- df_durham %>% 
+  mutate(
+    Date = my(paste(Month,Year))) %>% 
+  arrange(Date)
+  
 
 #5 
-
+ggplot(df_durham,aes(x=Date,y=Maximum_Day_Use)) + 
+  geom_line() + 
+  geom_smooth(method="loess",se=FALSE) +
+  labs(title = paste("Maximum Day Use (MGD) in 2024"),
+       subtitle = "DUrham Municipal LWSP",
+       y="Maximum Day Use (MGD)",
+       x="Date")
 
 ```
 
@@ -90,7 +145,34 @@ In the code chunk below scrape these values, assigning them to four separate var
 
 ```{r construct.a.scraping.function}
 #6. 
+scrape.it <- function(year, id){
 
+the_durham_url <- read_html(
+  paste0('https://www.ncwater.org/WUDC/app/LWSP/report.php?pwsid=', id, '&year=', year)
+)
+
+name <- 'div+ table tr:nth-child(1) td:nth-child(2)'
+id <- 'td tr:nth-child(1) td:nth-child(5)'
+ownership <- 'div+ table tr:nth-child(2) td:nth-child(4)'
+MGD <- 'th~ td+ td, th~ td+ td'
+
+name <- the_durham_url %>% html_nodes(name) %>% html_text()
+id <- the_durham_url %>%   html_nodes(id) %>%  html_text()
+ownership <- the_durham_url %>% html_nodes(ownership) %>% html_text()
+MGD <- the_durham_url %>% html_nodes(MGD) %>% html_text()
+
+df_url <- data.frame("Month" =
+                          c("Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sept","Oct","Nov","Dec"), 
+                             "Year" = rep(year,12),
+                             "Maximum_Day_Use" = as.numeric(MGD),
+                              "Water_System" = rep(name, 12),
+                              "PWSID" = rep(id, 12),
+                              "Ownership" = rep(ownership, 12)) %>% 
+    mutate(
+    Date = my(paste(Month,Year))) %>% 
+  arrange(Date)
+  return(df_url)
+}
 
 ```
 
@@ -98,15 +180,50 @@ In the code chunk below scrape these values, assigning them to four separate var
 
 ```{r fetch.and.plot.Durham.2020.data}
 #7 
+df_2020 <- scrape.it(2020, "03-32-010")
+str(df_2020)
 
-
+ggplot(df_2020,aes(x=Date,y=Maximum_Day_Use)) + 
+  geom_line() + 
+  geom_smooth(method="loess",se=FALSE) +
+  labs(
+    title = paste(
+      "Maximum Day Use (MGD) in 2020"
+      ),
+    y="Maximum Day Use",
+    x="Date"
+    )
 ```
 
-8. Use the function above to extract data for Cary (PWSID = '03-32-010') in 2020. Combine this data with the Durham data collected above and create a plot that compares Cary's to Durham's water withdrawals.
+8. Use the function above to extract data for Cary (PWSID = '03-92-020') in 2020. Combine this data with the Durham data collected above and create a plot that compares Cary's to Durham's water withdrawals.
 
 ```{r fetch.and.plot.Cary.2020.data}
 #8 
+df_cary <- scrape.it(2020, "03-92-020")
+str(df_cary)
 
+ggplot(df_cary,aes(x=Date,y=Maximum_Day_Use)) + 
+  geom_line() + 
+  geom_smooth(method="loess",se=FALSE) +
+  labs(
+    title = paste(
+      "Maximum Day Use (MGD) in 2020",
+    subsitle = "Cary Municipal LWSP"
+      ),
+    y="Maximum Day Use",
+    x="Date"
+    )
+str(df_cary)
+
+combine_plots <- bind_rows(df_2020, df_cary)
+ggplot(combine_plots,aes(x=Date,y=Maximum_Day_Use,color = Water_System)) + 
+  geom_line() + 
+  geom_smooth(method="loess",se=FALSE) +
+  labs(
+    title = "Maximum Daily Withdrawals between Durham and Cary",
+    y="Maximum Day Use",
+    x="Date"
+    )
 
 ```
 
@@ -117,10 +234,27 @@ In the code chunk below scrape these values, assigning them to four separate var
 
 ```{r fetch.and.plot.Cary.multiyear.data }
 #9 
+library(purrr)
+library(dplyr)
+library(ggplot2)
 
+cary_id <- "03-92-020"
+years <- c(2018, 2019, 2020, 2021, 2022, 2023)
+
+the_df <- map2(years, cary_id, scrape.it) 
+df_combine <- bind_rows(the_df)
+
+
+ggplot(df_combine,aes(x=Date,y=Maximum_Day_Use,color=Date)) + 
+  #geom_line() + 
+  geom_smooth(method="loess",se=FALSE) +
+  labs(title = "Cary Water usage data from 2018 to 2023",
+       y="Maximum Day Use",
+       x="Date")
 
 ```
 
 Question: Just by looking at the plot (i.e. not running statistics), does Cary have a trend in water usage over time?
-> Answer:
+> Answer: There is a clear trend in water usage in Cary where 2020 being the lowest 
+> and 2022 being the highest. There is a drop after 2022. 
 >
